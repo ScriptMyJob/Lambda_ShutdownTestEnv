@@ -1,2 +1,3 @@
 /Terraform/creds.tf
 /Terraform/.terraform/*
+/Terraform/terraform.tfstate*
