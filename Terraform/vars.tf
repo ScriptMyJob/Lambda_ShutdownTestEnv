@@ -16,3 +16,9 @@ variable "lambda" {
         name    = "lambda_shutdown_ec2"
     }
 }
+
+########################################
+### Data ###############################
+########################################
+
+data "aws_iam_account_alias" "current" {}

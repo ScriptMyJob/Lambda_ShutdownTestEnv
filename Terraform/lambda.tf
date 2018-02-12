@@ -26,9 +26,11 @@ resource "aws_lambda_function" "shutdown_ec2" {
     memory_size     = 128
     timeout         = 5
     environment {
-        variables = {
-            region      = "us-west-2"
+        variables   = {
+            region      = "${lookup(var.global,"region")}"
             environment = "Development"
+            account     = "${data.aws_iam_account_alias.current.account_alias}"
+            sns_arn     = "${aws_sns_topic.shutdown.arn}"
         }
     }
 }

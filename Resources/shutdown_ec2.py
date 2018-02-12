@@ -11,16 +11,19 @@ import json
 
 region      = os.environ.get('region', 'us-west-2')
 environment = os.environ.get('environment', 'Development')
+account     = os.environ.get('account')
+sns_arn     = os.environ.get('sns_arn')
 
 ec2         = boto3.client('ec2', region_name=region)
 ec2_asg     = boto3.client('autoscaling')
+sns         = boto3.client('sns')
 
 #######################################
 ### Main Function #####################
 #######################################
 
 def main():
-    check_ec2_asg()
+    asgs = check_ec2_asg()
 
     filters = [
         {
@@ -37,7 +40,14 @@ def main():
         }
     ]
 
-    check_ec2(filters)
+    ec2_ids = check_ec2(filters)
+
+    if asgs or ec2_ids:
+        sns_message = "Auto Scaling Groups affected =\n" + \
+                      str(asgs) + \
+                      "\nEC2 Instances Affected =\n" + \
+                      str(ec2_ids)
+        sns_push(account, sns_arn, sns_message)
 
     return None
 
@@ -65,9 +75,12 @@ def check_ec2_asg():
     if asgs:
         print('Scaling down ASGs...')
         scale_down_asgs(asgs)
+
         print('ASGs Scaled')
+        return asgs
     else:
         print('No ASGs found.')
+        return None
 
 
 def check_ec2(filters):
@@ -86,10 +99,12 @@ def check_ec2(filters):
     if instances:
         print('Stopping instances...')
         stop_instances(ids)
+
         print('Instances stopped.')
+        return ids
     else:
         print('No instances found.')
-
+        return None
 
 def scale_down_asgs(asgs):
     for asg in asgs:
@@ -122,6 +137,19 @@ def get_ids(instances):
 
 def stop_instances(ids):
     ec2.stop_instances(InstanceIds=ids)
+
+
+def sns_push(account, sns_arn, sns_message):
+    print("Pushing to SNS...")
+    sns_subject = 'Lambda Infrastructure Control Enacted - ' + account
+    response    = sns.publish(
+        TopicArn=sns_arn,
+        Message=sns_message,
+        Subject=sns_subject,
+        MessageStructure='string'
+    )
+
+    return response
 
 
 #######################################
