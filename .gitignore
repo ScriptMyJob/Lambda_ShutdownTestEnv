@@ -1,3 +1,4 @@
 /Terraform/creds.tf
 /Terraform/.terraform/*
 /Terraform/terraform.tfstate*
+/Resources/shutdown_ec2.zip

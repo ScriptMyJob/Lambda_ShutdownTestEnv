@@ -47,7 +47,9 @@ def main():
                       str(asgs) + \
                       "\nEC2 Instances Affected =\n" + \
                       str(ec2_ids)
-        sns_push(account, sns_arn, sns_message)
+
+        if account and sns_arn:
+            sns_push(account, sns_arn, sns_message)
 
     return None
 
@@ -105,6 +107,7 @@ def check_ec2(filters):
     else:
         print('No instances found.')
         return None
+
 
 def scale_down_asgs(asgs):
     for asg in asgs:
